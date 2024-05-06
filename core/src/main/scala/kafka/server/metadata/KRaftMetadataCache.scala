@@ -17,6 +17,7 @@
 
 package kafka.server.metadata
 
+import com.typesafe.scalalogging.Logger
 import kafka.server.{CachedControllerId, KRaftCachedControllerId, MetadataCache}
 import kafka.utils.Logging
 import org.apache.kafka.admin.BrokerMetadata
@@ -46,6 +47,8 @@ import scala.util.control.Breaks._
 
 
 class KRaftMetadataCache(val brokerId: Int) extends MetadataCache with Logging with ConfigRepository {
+  private val logger = Logger("kraft.metadata.cache")
+
   this.logIdent = s"[MetadataCache brokerId=$brokerId] "
 
   // This is the cache state. Every MetadataImage instance is immutable, and updates
@@ -335,7 +338,10 @@ class KRaftMetadataCache(val brokerId: Int) extends MetadataCache with Logging w
     result
   }
 
-  override def getAllTopics(): Set[String] = _currentImage.topics().topicsByName().keySet().asScala
+  override def getAllTopics(): Set[String] = {
+    logger.info(s"Topic names = ${_currentImage.topics().topicsByName().keySet().asScala.toString()}")
+    _currentImage.topics().topicsByName().keySet().asScala
+  }
 
   override def getTopicPartitions(topicName: String): Set[TopicPartition] = {
     Option(_currentImage.topics().getTopic(topicName)) match {
